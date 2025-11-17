@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}{{ pet.nome }} - PetHub{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    {% if pet.foto %}
+                        <img src="{{ pet.foto.url }}" alt="Foto de {{ pet.nome }}" class="img-fluid rounded" style="width: 100%; object-fit: cover;">
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <h1 class="mb-3">{{ pet.nome }}</h1>
+                    
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item"><strong>Espécie:</strong> {{ pet.especie }}</li>
+                        <li class="list-group-item"><strong>Raça:</strong> {{ pet.raca|default:"Não informada" }}</li>
+                        <li class="list-group-item"><strong>Idade:</strong> {{ pet.idade }} anos</li>
+                        <li class="list-group-item"><strong>Dono:</strong> {{ pet.dono.username }}</li>
+                    </ul>
+                    
+                    <h3 class="h5">Descrição</h3>
+                    <p>{{ pet.descricao|linebreaks }}</p>
+
+                    {% if user.is_authenticated and pet.status_adocao == 'disponivel' and user != pet.dono %}
+                        <form method="post" action="{% url 'pet-request' pet.pk %}" class="my-3">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-warning btn-lg w-100">
+                                <i class="bi bi-heart-fill"></i> Quero Adotar!
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    {% if user == pet.dono %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-start my-3">
+                            <a href="{% url 'pet-update' pet.pk %}" class="btn btn-primary">
+                                <i class="bi bi-pencil-fill"></i> Editar Pet
+                            </a>
+                            <a href="{% url 'pet-delete' pet.pk %}" class="btn btn-danger">
+                                <i class="bi bi-trash-fill"></i> Deletar Pet
+                            </a>
+                        </div>
+                    {% endif %}
+                    
+                    <a href="{% url 'pet-list' %}" class="btn btn-outline-secondary mt-2">
+                        <i class="bi bi-arrow-left"></i> Voltar para a lista
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Confirmar Deleção - PetHub{% endblock %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h1 class="card-title">Confirmar Deleção</h1>
+                    <p class="lead">Você tem certeza que quer deletar o anúncio de <strong>{{ pet.nome }}</strong>?</p>
+                    <p class="text-danger">Essa ação não pode ser desfeita.</p>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-lg">Sim, deletar</button>
+                        <a href="{% url 'pet-detail' pet.pk %}" class="btn btn-secondary btn-lg">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
