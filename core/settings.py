@@ -14,6 +14,15 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = []
 
+RAILWAY_HOST = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
+if RAILWAY_HOST:
+    ALLOWED_HOSTS.append(f".{RAILWAY_HOST}")
+
+
+CSRF_ORIGIN = os.environ.get('CSRF_TRUSTED_ORIGINS')
+if CSRF_ORIGIN:
+    CSRF_TRUSTED_ORIGINS = [CSRF_ORIGIN]
+
 RAILWAY_APP_URL = os.environ.get('RAILWAY_STATIC_URL')
 if RAILWAY_APP_URL:
     ALLOWED_HOSTS.append(RAILWAY_APP_URL.lstrip('https://').rstrip('/'))
