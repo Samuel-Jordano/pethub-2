@@ -4,38 +4,27 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# --- 1. SEGURANÇA ---
 
-SECRET_KEY = os.environ.get(
-    'SECRET_KEY', 
-    'django-insecure-sua-chave-local-para-desenvolvimento' 
-)
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-chave-padrao-para-desenvolvimento-local')
 
-IS_RAILWAY_DEPLOY = 'RAILWAY_STATIC_URL' in os.environ
+ON_RENDER = os.environ.get('RENDER')
 
-if IS_RAILWAY_DEPLOY:
+if ON_RENDER:
     DEBUG = False
 else:
     DEBUG = True
 
 ALLOWED_HOSTS = []
+CSRF_TRUSTED_ORIGINS = []
 
-RAILWAY_HOST = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
-if RAILWAY_HOST:
-    ALLOWED_HOSTS.append(f".{RAILWAY_HOST}")
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
 
 
-CSRF_ORIGIN = os.environ.get('CSRF_TRUSTED_ORIGINS')
-if CSRF_ORIGIN:
-    CSRF_TRUSTED_ORIGINS = [CSRF_ORIGIN]
-
-RAILWAY_APP_URL = os.environ.get('RAILWAY_STATIC_URL')
-if RAILWAY_APP_URL:
-    ALLOWED_HOSTS.append(RAILWAY_APP_URL.lstrip('https://').rstrip('/'))
-
-RAILWAY_HOST = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
-if RAILWAY_HOST:
-    ALLOWED_HOSTS.append(f".{RAILWAY_HOST}") 
-
+# --- 2. APLICAÇÕES ---
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -43,10 +32,11 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    
     'whitenoise.runserver_nostatic', 
     'django.contrib.staticfiles',
-
-    'cloudinary_storage', 
+    
+    'cloudinary_storage',
     'cloudinary',
 
     'usuarios',
@@ -55,7 +45,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', 
+    'whitenoise.middleware.WhiteNoiseMiddleware', # <--- WhiteNoise ativado aqui
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -85,12 +75,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 
+
 DATABASES = {
     'default': dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600
     )
 }
+
 
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -101,37 +93,45 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
 
 
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Pasta onde o Render vai coletar
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')] # Pasta onde está seu CSS original
+
+if not DEBUG:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
-if DEBUG:
+
+if not DEBUG:
+    MEDIA_URL = '/media/' 
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+else:
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-else:
-    MEDIA_URL = '/media/' 
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'pet-list'
 LOGOUT_REDIRECT_URL = 'login'
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
