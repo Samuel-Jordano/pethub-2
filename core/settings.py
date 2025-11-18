@@ -10,7 +10,12 @@ SECRET_KEY = os.environ.get(
     'django-insecure-sua-chave-local-para-desenvolvimento' 
 )
 
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+IS_RAILWAY_DEPLOY = 'RAILWAY_STATIC_URL' in os.environ
+
+if IS_RAILWAY_DEPLOY:
+    DEBUG = False
+else:
+    DEBUG = True
 
 ALLOWED_HOSTS = []
 
