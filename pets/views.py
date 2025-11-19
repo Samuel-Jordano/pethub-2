@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .models import Pet, AdoptionRequest
 from .forms import PetForm
 
@@ -18,6 +19,7 @@ def create_pet_view(request):
             pet = form.save(commit=False)
             pet.dono = request.user
             pet.save()
+            messages.success(request, 'Pet cadastrado com sucesso!')
             return redirect('pet-list')
     else:
         form = PetForm()
@@ -35,26 +37,37 @@ def pet_detail_view(request, pk):
 @login_required
 def pet_update_view(request, pk):
     pet = get_object_or_404(Pet, pk=pk)
+
     if request.user != pet.dono:
         return redirect('pet-list')
+
     if request.method == 'POST':
         form = PetForm(request.POST, request.FILES, instance=pet)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Informações do pet atualizadas!')
             return redirect('pet-detail', pk=pet.pk)
     else:
         form = PetForm(instance=pet)
-    context = {'form': form, 'pet': pet}
+
+    context = {
+        'form': form,
+        'pet': pet
+    }
     return render(request, 'pets/pet_form.html', context)
 
 @login_required
 def pet_delete_view(request, pk):
     pet = get_object_or_404(Pet, pk=pk)
+
     if request.user != pet.dono:
         return redirect('pet-list')
+
     if request.method == 'POST':
         pet.delete()
+        messages.success(request, 'Pet removido com sucesso.')
         return redirect('pet-list')
+    
     context = {'pet': pet}
     return render(request, 'pets/pet_delete_confirm.html', context)
 
@@ -72,6 +85,11 @@ def request_adoption_view(request, pk):
             
             if not existing_request:
                 AdoptionRequest.objects.create(pet=pet, solicitante=request.user)
+                messages.success(request, 'Pedido de adoção enviado com sucesso! O dono entrará em contato.')
+            else:
+                messages.warning(request, 'Você já enviou um pedido para este pet.')
+        else:
+             messages.error(request, 'Você não pode adotar este pet.')
 
     return redirect('pet-detail', pk=pet.pk)
 
@@ -91,6 +109,7 @@ def approve_request_view(request, pk):
         pet.save()
         
         AdoptionRequest.objects.filter(pet=pet, status='pendente').update(status='recusado')
+        messages.success(request, f'Adoção aprovada para {pedido.solicitante.username}!')
 
     return redirect('dashboard')
 
@@ -104,5 +123,6 @@ def decline_request_view(request, pk):
     if request.method == 'POST':
         pedido.status = 'recusado'
         pedido.save()
+        messages.info(request, 'Pedido de adoção recusado.')
 
     return redirect('dashboard')

@@ -14,4 +14,5 @@ urlpatterns = [
     ), name='logout'),
     
     path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('minhas-adocoes/', views.my_adoptions_view, name='my-adoptions'), # <--- NOVA ROTA
 ]

@@ -27,3 +27,13 @@ def dashboard_view(request):
         'pedidos': pedidos_recebidos
     }
     return render(request, 'usuarios/dashboard.html', context)
+@login_required
+def my_adoptions_view(request):
+    meus_pedidos = AdoptionRequest.objects.filter(
+        solicitante=request.user
+    ).order_by('-data_solicitacao')
+    
+    context = {
+        'pedidos': meus_pedidos
+    }
+    return render(request, 'usuarios/my_adoptions.html', context)

@@ -184,6 +184,11 @@ body {
 .form-control[type="file"]:hover {
     background-color: transparent;
 }
+.alert-error {
+    color: #842029;
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+}
 
 @media (max-width: 992px) {
     .sidebar {
